@@ -217,10 +217,10 @@ func (s *ModelsSuite) TestMailLogGetSmtpFrom(ch *check.C) {
 	template := Template{
 		Name:           "OverrideSmtpFrom",
 		UserId:         1,
-		Text:           "dummytext",
-		HTML:           "Dummyhtml",
-		Subject:        "Dummysubject",
-		EnvelopeSender: "spoofing@example.com",
+		Text:           "text",
+		HTML:           "html",
+		Subject:        "subject",
+		EnvelopeSender: "foo@example.com",
 	}
 	ch.Assert(PostTemplate(&template), check.Equals, nil)
 	campaign := s.createCampaignDependencies(ch)
@@ -244,7 +244,7 @@ func (s *ModelsSuite) TestMailLogGetSmtpFrom(ch *check.C) {
 
 	got, err := email.NewEmailFromReader(msgBuff)
 	ch.Assert(err, check.Equals, nil)
-	ch.Assert(got.From, check.Equals, "spoofing@example.com")
+	ch.Assert(got.From, check.Equals, "foo@example.com")
 }
 
 func (s *ModelsSuite) TestMailLogGenerate(ch *check.C) {
@@ -266,8 +266,8 @@ func (s *ModelsSuite) TestMailLogGenerate(ch *check.C) {
 func (s *ModelsSuite) TestMailLogGenerateTransparencyHeaders(ch *check.C) {
 	s.config.ContactAddress = "test@test.com"
 	expectedHeaders := map[string]string{
-		"X-Mailer":          config.ServerName,
-		"X-Gophish-Contact": s.config.ContactAddress,
+		"X-Mailer": config.ServerName,
+		"Reply-To": s.config.ContactAddress,
 	}
 	campaign := s.createCampaign(ch)
 	got := s.emailFromFirstMailLog(campaign, ch)
@@ -278,8 +278,8 @@ func (s *ModelsSuite) TestMailLogGenerateTransparencyHeaders(ch *check.C) {
 
 func (s *ModelsSuite) TestMailLogGenerateOverrideTransparencyHeaders(ch *check.C) {
 	expectedHeaders := map[string]string{
-		"X-Mailer":          "",
-		"X-Gophish-Contact": "",
+		"X-Mailer": "",
+		"Reply-To": "",
 	}
 	smtp := SMTP{
 		Name:        "Test SMTP",
@@ -287,7 +287,7 @@ func (s *ModelsSuite) TestMailLogGenerateOverrideTransparencyHeaders(ch *check.C
 		FromAddress: "foo@example.com",
 		UserId:      1,
 		Headers: []Header{
-			Header{Key: "X-Gophish-Contact", Value: ""},
+			Header{Key: "Reply-To", Value: ""},
 			Header{Key: "X-Mailer", Value: ""},
 		},
 	}
